@@ -1,0 +1,18 @@
+# Environnement et dépendances
+node_modules/
+__pycache__/
+venv/
+env/
+
+# Fichiers de configuration locaux et mots de passe
+.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Fichiers OS
+.DS_Store
+Thumbs.db
