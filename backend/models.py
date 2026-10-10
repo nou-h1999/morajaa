@@ -63,32 +63,30 @@ class Quartier(Base):
 class Annonce(Base):
     __tablename__ = "annonces"
 
-    # LA CLÉ PRIMAIRE INDISPENSABLE
     id = Column(Integer, primary_key=True, index=True)
-    
-    # L'AUTEUR
+    # L'auteur sera défini par le serveur
     auteur_id = Column(Integer, ForeignKey("utilisateurs.id"), nullable=False, unique=True)
     
-    # LES CHAMPS TEXTUELS
-    presentation = Column(String(255))
-    parcours = Column(Text)
-    approche = Column(Text)
+    # Champs textuels selon ton contrat
+    parcours = Column(Text, nullable=False)
+    description = Column(Text, nullable=False) # Remplace presentation/approche
+    disponibilites = Column(Text, nullable=True) # Nouveau champ facultatif
     
-    # LES CRITÈRES DE RECHERCHE
-    matiere = Column(String(50), index=True) 
-    niveau = Column(String(50), index=True)
-    format_cours = Column(String(50))
+    # Critères
+    matiere = Column(String(50), index=True, nullable=False)
+    niveau = Column(String(50), index=True, nullable=False)
+    format = Column(String(50), nullable=False) # Remplace format_cours
     
-    # LES NOUVELLES CLÉS ÉTRANGÈRES (Villes et Quartiers)
+    # Localisation (Peuvent être vides pour le 100% en ligne)
     ville_id = Column(Integer, ForeignKey("villes.id"), nullable=True)
     quartier_id = Column(Integer, ForeignKey("quartiers.id"), nullable=True)
     
-    # PRIX ET STATUT
+    # Prix et statut
     tarif = Column(Numeric(10, 2), nullable=False)
-    statut = Column(String(50), default="draft")
+    statut = Column(String(50), default="pending_review") # Le serveur attribue ce statut
     date_creation = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # LES RELATIONS (Pour naviguer en Python)
+    # Relations
     auteur = relationship("Utilisateur", back_populates="annonce")
     ville_ref = relationship("Ville", back_populates="annonces")
     quartier_ref = relationship("Quartier", back_populates="annonces")

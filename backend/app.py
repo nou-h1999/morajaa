@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 from typing import Optional
 from fastapi import Depends
 from sqlalchemy import func
-
+from fastapi import HTTPException
 # On importe nos 3 autres fichiers
 import models, schemas, database
 from database import engine, SessionLocal
@@ -119,3 +119,45 @@ def lister_villes_actives(db: Session = Depends(get_db)):
         
     # On renvoie une liste propre au front-end
     return [{"id": ville.id, "nom": ville.nom} for ville in villes_actives]
+
+
+@app.post("/api/v1/annonces")
+def creer_annonce(annonce_data: schemas.AnnonceCreate, db: Session = Depends(get_db)):
+    
+    # 1. RÈGLE MÉTIER : Vérifier que le quartier appartient bien à la ville
+    if annonce_data.ville_id and annonce_data.quartier_id:
+        quartier_valide = db.query(models.Quartier).filter(
+            models.Quartier.id == annonce_data.quartier_id,
+            models.Quartier.ville_id == annonce_data.ville_id
+        ).first()
+        
+        if not quartier_valide:
+            raise HTTPException(
+                status_code=400, 
+                detail="Ce quartier n'appartient pas à la ville sélectionnée."
+            )
+
+    # 2. RÈGLE MÉTIER : L'auteur (Pour l'instant on simule l'utilisateur connecté avec l'ID 1)
+    # Plus tard, tu remplaceras "1" par l'ID du vrai token de connexion
+    utilisateur_connecte_id = 1 
+
+    # 3. Création de l'objet pour la base de données
+    nouvelle_annonce = models.Annonce(
+        auteur_id=utilisateur_connecte_id,
+        parcours=annonce_data.parcours,
+        description=annonce_data.description,
+        disponibilites=annonce_data.disponibilites,
+        matiere=annonce_data.matiere,
+        niveau=annonce_data.niveau,
+        format=annonce_data.format,
+        ville_id=annonce_data.ville_id,
+        quartier_id=annonce_data.quartier_id,
+        tarif=annonce_data.tarif
+        # Le statut "pending_review" est mis automatiquement par SQLAlchemy
+    )
+
+    db.add(nouvelle_annonce)
+    db.commit()
+    db.refresh(nouvelle_annonce)
+
+    return {"message": "Annonce soumise avec succès", "statut": nouvelle_annonce.statut}
