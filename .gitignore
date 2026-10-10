@@ -3,6 +3,7 @@ node_modules/
 __pycache__/
 venv/
 env/
+.venv/
 
 # Fichiers de configuration locaux et mots de passe
 .env
