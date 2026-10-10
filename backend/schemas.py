@@ -1,19 +1,79 @@
-#filtrer les données JSON qui entrent et sortent
-from pydantic import BaseModel, EmailStr
+from decimal import Decimal
+from typing import Literal, Optional
 
-# 1. Le schéma d'ENTRÉE (Ce que le Front-end nous envoie)
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    model_validator,
+)
+
+
 class UserCreate(BaseModel):
     firstName: str
     email: EmailStr
-    password: str # Le mot de passe en clair tapé par l'utilisateur
+    password: str
 
-# 2. Le schéma de SORTIE (Ce qu'on renvoie au Front-end)
+
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     firstName: str
     email: EmailStr
-    # ⚠️ On ne renvoie JAMAIS le mot de passe (même haché) au navigateur !
 
-    class Config:
-        # Cette option permet à Pydantic de lire directement les données depuis la base SQL
-        model_config = {"from_attributes": True}
+
+class AnnonceCreate(BaseModel):
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        extra="forbid",
+    )
+
+    parcours: str = Field(min_length=10, max_length=1000)
+    description: str = Field(min_length=30, max_length=3000)
+
+    matiere: Literal[
+        "mathematiques",
+        "physique-chimie",
+        "anglais",
+        "francais",
+        "arabe",
+        "informatique",
+    ]
+
+    niveau: Literal["college", "lycee", "superieur"]
+    format: Literal["presentiel", "en-ligne", "both"]
+
+    ville_id: Optional[int] = Field(
+        default=None, gt=0, strict=True
+    )
+    quartier_id: Optional[int] = Field(
+        default=None, gt=0, strict=True
+    )
+
+    tarif: Decimal = Field(
+        gt=0,
+        decimal_places=2,
+        allow_inf_nan=False,
+    )
+
+    disponibilites: Optional[str] = Field(
+        default=None, max_length=500
+    )
+
+    @model_validator(mode="after")
+    def verifier_localisation(self):
+        if self.format in ("presentiel", "both"):
+            if self.ville_id is None or self.quartier_id is None:
+                raise ValueError(
+                    "La ville et le quartier sont obligatoires "
+                    "pour les cours en présentiel."
+                )
+
+        if self.quartier_id is not None and self.ville_id is None:
+            raise ValueError(
+                "Un quartier doit être associé à une ville."
+            )
+
+        return self
