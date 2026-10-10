@@ -7,6 +7,7 @@
   const key='morajaa-demo-v1';let state;
   const initial=()=>({requests:[],notes:[],documents:[],sessions:[{id:'example',date:'2026-10-10T15:00:00Z',duration:60,format:'presentiel',location:'Rabat, Agdal — lieu à convenir',price:120,status:'planned'}],learner:{},listing:null,accepted:false,archived:false});
   try{state=JSON.parse(localStorage.getItem(key))||initial();}catch{state=initial();}
+  if (state.listing?.status === 'pending_check') state.listing.status = 'pending_review';
   const persist=()=>{try{localStorage.setItem(key,JSON.stringify(state));return true;}catch{return false;}};
   const id=()=>window.crypto?.randomUUID?.()||`demo-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const message=(form,text)=>{const el=form.querySelector('.mj-status');if(el)el.textContent=text;};
@@ -40,8 +41,53 @@
     f.addEventListener('submit',e=>{e.preventDefault();if(!f.reportValidity())return;if(state.requests.some(r=>r.person===person.id&&r.status==='sent')){message(f,'Une demande ouverte existe déjà pour ce profil. Retrouvez-la dans Mon espace.');return;}
     const values=Object.fromEntries(new FormData(f));state.requests.push({...values,id:id(),person:person.id,status:'sent'});saveMessage(f,'Demande enregistrée en démonstration. Aucun message transmis.');let a=document.createElement('a');a.href='espace.html';a.textContent='Voir ma demande →';a.className='mj-text-link';if(!f.querySelector('a'))f.append(a);});
   }
-  $$('[data-demo-form]').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();if(!f.reportValidity())return;const type=f.dataset.demoForm;
-    if(type==='login'||type==='register'){const safeNext=params.get('next');location.href=['demande.html','espace.html','proposer.html'].includes(safeNext)?safeNext:'espace.html';}
+  $('[data-demo-form]').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();if(!f.reportValidity())return;const type=f.dataset.demoForm;
+    if(type==='register'){
+      if(f.dataset.submitting==='true'||f.dataset.registered==='true')return;
+      const firstName=f.elements.firstName.value.trim(), email=f.elements.email.value.trim();
+      if(!firstName||!email){message(f,'Renseignez votre prénom et votre adresse email.');return;}
+      let endpoint;
+      try{
+        endpoint=new URL(f.dataset.registerUrl,location.href);
+        const local=['localhost','127.0.0.1','[::1]'];
+        if(!['http:','https:'].includes(endpoint.protocol)||endpoint.username||endpoint.password||
+          (endpoint.protocol!=='https:'&&!local.includes(endpoint.hostname))||
+          (local.includes(endpoint.hostname)&&!local.includes(location.hostname))){
+          message(f,'L’inscription sera disponible lorsque le service sera connecté au site.');return;
+        }
+      }catch{message(f,'L’inscription est temporairement indisponible.');return;}
+      const button=f.querySelector('button'), label=button.textContent;
+      const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),15000);
+      f.dataset.submitting='true';button.disabled=true;button.textContent='Création en cours…';f.setAttribute('aria-busy','true');
+      message(f,'Création de votre compte en cours…');
+      try{
+        const response=await fetch(endpoint.href,{
+          method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+          credentials:'omit',signal:controller.signal,
+          body:JSON.stringify({firstName,email,password:f.elements.password.value})
+        });
+        if(!response.ok){
+          message(f,response.status===409?'Cette adresse email est déjà utilisée.':
+            response.status===422?'Vérifiez les informations saisies et les exigences du mot de passe.':
+            response.status===429?'Trop de tentatives. Réessayez dans quelques minutes.':
+            'La création du compte a échoué. Réessayez plus tard.');
+          return;
+        }
+        f.elements.password.value='';
+        f.dataset.registered='true';
+        message(f,'Votre compte a été créé. La connexion à votre compte sera disponible prochainement.');
+        button.textContent='Compte créé';
+      }catch(error){
+        message(f,error.name==='AbortError'?
+          'Le service met trop de temps à répondre. Votre compte a peut-être été créé ; vérifiez avant de réessayer.':
+          'Impossible de joindre le service. Vérifiez votre connexion et réessayez.');
+      }finally{
+        clearTimeout(timeout);delete f.dataset.submitting;f.removeAttribute('aria-busy');
+        if(f.dataset.registered!=='true'){button.disabled=false;button.textContent=label;}
+      }
+      return;
+    }
+    if(type==='login'){const safeNext=params.get('next');location.href=['demande.html','espace.html','proposer.html'].includes(safeNext)?safeNext:'espace.html';}
     else message(f,type==='reset'?'Démonstration : aucun email envoyé. La récupération de compte sera connectée à FastAPI.':'Démonstration : votre message n’a pas été envoyé. Le formulaire sera connecté au backend.');
   }));
   if($('#learner-form')){const f=$('#learner-form');Object.entries(state.learner).forEach(([k,v])=>{if(f.elements[k])f.elements[k].value=v;});f.addEventListener('submit',e=>{e.preventDefault();if(!f.reportValidity())return;state.learner=Object.fromEntries(new FormData(f));saveMessage(f,'Profil de démonstration enregistré.');});}
@@ -52,11 +98,11 @@
     const show=()=>{steps.forEach((s,i)=>s.hidden=i!==step);if(step===2){const data=Object.fromEntries(new FormData(f));$('#listing-preview').innerHTML=`<h3>${esc(data.name)} · ${esc(D.subjects[data.subject])}</h3><p>${esc(data.background)}</p><p>${esc(data.approach)}</p><p>${esc(D.cities[data.city])} · ${esc(D.districts[data.city]?.[data.district])} · ${esc(data.price)} MAD/h</p>`;}};
     $$('[data-next]').forEach(b=>b.addEventListener('click',()=>{const invalid=Array.from(steps[step].querySelectorAll('input,textarea,select')).find(el=>!el.checkValidity());if(invalid){invalid.reportValidity();return;}step=Math.min(2,step+1);show();}));
     $$('[data-prev]').forEach(b=>b.addEventListener('click',()=>{step=Math.max(0,step-1);show();}));
-    f.addEventListener('submit',e=>{e.preventDefault();if(step!==2)return;state.listing={...Object.fromEntries(new FormData(f)),status:'pending_check'};saveMessage(f,'Annonce enregistrée : contrôle en attente dans la démonstration. Aucun contrôle IA réel ni publication.');});
+    f.addEventListener('submit',e=>{e.preventDefault();if(step!==2)return;state.listing={...Object.fromEntries(new FormData(f)),status:'pending_review'};saveMessage(f,'Annonce enregistrée : en attente de validation manuelle dans la démonstration. Aucune publication réelle.');});
   }
   if($('#sent-requests'))$('#sent-requests').innerHTML=state.requests.length?state.requests.map(r=>{const p=D.profiles.find(p=>p.id===r.person);return `<article class="mj-panel"><h3>${esc(D.subjects[p.subject])} avec ${esc(p.name)}</h3><p>${esc(r.message)}</p><span class="mj-badge">${r.status==='sent'?'Envoyée · démonstration':esc(r.status)}</span></article>`;}).join(''):'<div class="mj-panel"><p>Aucune demande envoyée pour le moment.</p><a href="recherche.html">Trouver un cours →</a></div>';
-  function listingStatus(){if($('#listing-status'))$('#listing-status').textContent=state.listing?({pending_check:'Contrôle en attente · démonstration',paused:'Annonce en pause · démonstration'}[state.listing.status]||state.listing.status):'Aucune annonce soumise dans ce navigateur.';}
-  listingStatus();$('#pause-listing')?.addEventListener('click',()=>{if(!state.listing){$('#listing-status').textContent='Créez une annonce avant de la mettre en pause.';return;}state.listing.status=state.listing.status==='paused'?'pending_check':'paused';persist();listingStatus();$('#pause-listing').textContent=state.listing.status==='paused'?'Reprendre le contrôle':'Mettre en pause';});
+  function listingStatus(){if($('#listing-status'))$('#listing-status').textContent=state.listing?({pending_review:'En attente de validation manuelle · démonstration',paused:'Annonce en pause · démonstration'}[state.listing.status]||state.listing.status):'Aucune annonce soumise dans ce navigateur.';}
+  listingStatus();$('#pause-listing')?.addEventListener('click',()=>{if(!state.listing){$('#listing-status').textContent='Créez une annonce avant de la mettre en pause.';return;}state.listing.status=state.listing.status==='paused'?'pending_review':'paused';persist();listingStatus();$('#pause-listing').textContent=state.listing.status==='paused'?'Soumettre à validation':'Mettre en pause';});
   $('#accept-request')?.addEventListener('click',()=>{state.accepted=true;persist();$('#received-status').textContent='Demande exemple acceptée. Un seul espace est disponible dans cette démonstration.';location.href='accompagnement.html';});
   $('#decline-request')?.addEventListener('click',()=>{$('#received-status').textContent='Demande exemple refusée dans cette démonstration.';$('#accept-request').disabled=true;});
   if($('#accompaniment-list'))$('#accompaniment-list').innerHTML=`<article class="mj-panel"><h2>Mathématiques avec Salma</h2><p>Lycée · Rabat, Agdal · espace exemple ${state.archived?'archivé':'actif'}</p><p>${state.sessions.filter(s=>s.status!=='cancelled').length} séance(s) dans le planning de démonstration</p><a class="mj-button" href="accompagnement.html">Ouvrir l’espace →</a></article>`;
@@ -87,3 +133,4 @@
   archiveLabel();$('#archive-space')?.addEventListener('click',()=>{state.archived=!state.archived;persist();archiveLabel();});
   $$('[data-admin]').forEach(b=>b.addEventListener('click',()=>{const panel=b.closest('.mj-panel');panel.querySelector('.mj-status').textContent=b.dataset.admin;}));
 })();
+
