@@ -41,7 +41,7 @@
     f.addEventListener('submit',e=>{e.preventDefault();if(!f.reportValidity())return;if(state.requests.some(r=>r.person===person.id&&r.status==='sent')){message(f,'Une demande ouverte existe déjà pour ce profil. Retrouvez-la dans Mon espace.');return;}
     const values=Object.fromEntries(new FormData(f));state.requests.push({...values,id:id(),person:person.id,status:'sent'});saveMessage(f,'Demande enregistrée en démonstration. Aucun message transmis.');let a=document.createElement('a');a.href='espace.html';a.textContent='Voir ma demande →';a.className='mj-text-link';if(!f.querySelector('a'))f.append(a);});
   }
-  $('[data-demo-form]').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();if(!f.reportValidity())return;const type=f.dataset.demoForm;
+  $$('[data-demo-form]').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();if(!f.reportValidity())return;const type=f.dataset.demoForm;
     if(type==='register'){
       if(f.dataset.submitting==='true'||f.dataset.registered==='true')return;
       const firstName=f.elements.firstName.value.trim(), email=f.elements.email.value.trim();
