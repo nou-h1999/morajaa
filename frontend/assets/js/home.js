@@ -17,10 +17,10 @@
     const params = new URLSearchParams({matiere: subject.value, ville: city.value});
     location.href = 'recherche.html?' + params.toString();
     feedback.hidden = false;
-    // Intégration suivante : navigation vers recherche.html? + params.toString().
     form.dataset.search = params.toString();
   });
   root.querySelector('#mj-offer-button').addEventListener('click', () => {
     location.href = 'proposer.html';
   });
 })();
+
