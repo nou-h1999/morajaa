@@ -16,4 +16,4 @@ class UserResponse(BaseModel):
 
     class Config:
         # Cette option permet à Pydantic de lire directement les données depuis la base SQL
-        orm_mode = True
+        model_config = {"from_attributes": True}

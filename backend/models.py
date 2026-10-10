@@ -59,15 +59,37 @@ class Quartier(Base):
     annonces = relationship("Annonce", back_populates="quartier_ref")
 
 # 3. MODIFICATION DE LA TABLE ANNONCE (Mise à jour de l'existant)
+
 class Annonce(Base):
     __tablename__ = "annonces"
-    # ... (tes autres colonnes : id, tarif, auteur_id, etc.) ...
 
-    # Au lieu d'avoir Column(String(50)), on pointe vers les tables de référence
+    # LA CLÉ PRIMAIRE INDISPENSABLE
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # L'AUTEUR
+    auteur_id = Column(Integer, ForeignKey("utilisateurs.id"), nullable=False, unique=True)
+    
+    # LES CHAMPS TEXTUELS
+    presentation = Column(String(255))
+    parcours = Column(Text)
+    approche = Column(Text)
+    
+    # LES CRITÈRES DE RECHERCHE
+    matiere = Column(String(50), index=True) 
+    niveau = Column(String(50), index=True)
+    format_cours = Column(String(50))
+    
+    # LES NOUVELLES CLÉS ÉTRANGÈRES (Villes et Quartiers)
     ville_id = Column(Integer, ForeignKey("villes.id"), nullable=True)
     quartier_id = Column(Integer, ForeignKey("quartiers.id"), nullable=True)
+    
+    # PRIX ET STATUT
+    tarif = Column(Numeric(10, 2), nullable=False)
+    statut = Column(String(50), default="draft")
+    date_creation = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # Relations pour permettre à Python de naviguer facilement
+    # LES RELATIONS (Pour naviguer en Python)
+    auteur = relationship("Utilisateur", back_populates="annonce")
     ville_ref = relationship("Ville", back_populates="annonces")
     quartier_ref = relationship("Quartier", back_populates="annonces")
 
