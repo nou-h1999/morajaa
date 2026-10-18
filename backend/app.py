@@ -13,6 +13,13 @@ import os
 from dotenv import load_dotenv
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 import security # Ton nouveau fichier
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+
+
+# On indique à Swagger où aller chercher le token (l'URL de ta route de connexion)
+
 
 # Charge les variables du fichier .env
 load_dotenv() 
@@ -47,6 +54,33 @@ def get_db():
         yield db
     finally:
         db.close()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+def get_utilisateur_actuel(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    erreur_auth = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Non autorisé : Token invalide ou expiré",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        # On lit le token avec la clé secrète
+        cle_secrete = os.getenv("SECRET_KEY", "cle_secrete_par_defaut") 
+        algorithme = os.getenv("ALGORITHM", "HS256")
+        
+        payload = jwt.decode(token, cle_secrete, algorithms=[algorithme])
+        id_utilisateur: str = payload.get("sub")
+        
+        if id_utilisateur is None:
+            raise erreur_auth
+    except JWTError:
+        raise erreur_auth
+        
+    # On vérifie que le tuteur existe toujours dans la base de données MariaDB
+    utilisateur = db.query(models.Utilisateur).filter(models.Utilisateur.id == id_utilisateur).first()
+    if utilisateur is None:
+        raise erreur_auth
+        
+    return utilisateur
 
 # --- LA ROUTE D'INSCRIPTION ---
 @app.post("/api/v1/auth/register", response_model=schemas.UserResponse)
@@ -131,7 +165,12 @@ def lister_villes_actives(db: Session = Depends(get_db)):
 
 
 @app.post("/api/v1/annonces")
-def creer_annonce(annonce_data: schemas.AnnonceCreate, db: Session = Depends(get_db)):
+def creer_annonce(
+    annonce_data: schemas.AnnonceCreate, 
+    db: Session = Depends(get_db),
+    # La Douane : FastAPI exige un token valide avant même d'exécuter la suite
+    utilisateur_courant: models.Utilisateur = Depends(get_utilisateur_actuel) 
+):
     
     # 1. RÈGLE MÉTIER : Vérifier que le quartier appartient bien à la ville
     if annonce_data.ville_id and annonce_data.quartier_id:
@@ -146,9 +185,9 @@ def creer_annonce(annonce_data: schemas.AnnonceCreate, db: Session = Depends(get
                 detail="Ce quartier n'appartient pas à la ville sélectionnée."
             )
 
-    # 2. RÈGLE MÉTIER : L'auteur (Pour l'instant on simule l'utilisateur connecté avec l'ID 1)
-    # Plus tard, tu remplaceras "1" par l'ID du vrai token de connexion
-    utilisateur_connecte_id = 1 
+    # 2. RÈGLE MÉTIER : L'auteur (Terminé la simulation !)
+    # On récupère le vrai ID extrait du token sécurisé
+    utilisateur_connecte_id = utilisateur_courant.id 
 
     # 3. Création de l'objet pour la base de données
     nouvelle_annonce = models.Annonce(
@@ -162,7 +201,6 @@ def creer_annonce(annonce_data: schemas.AnnonceCreate, db: Session = Depends(get
         ville_id=annonce_data.ville_id,
         quartier_id=annonce_data.quartier_id,
         tarif=annonce_data.tarif
-        # Le statut "pending_review" est mis automatiquement par SQLAlchemy
     )
 
     db.add(nouvelle_annonce)

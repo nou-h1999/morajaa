@@ -65,7 +65,7 @@ class Annonce(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     # L'auteur sera défini par le serveur
-    auteur_id = Column(Integer, ForeignKey("utilisateurs.id"), nullable=False, unique=True)
+    auteur_id = Column(Integer, ForeignKey("utilisateurs.id"), nullable=False)
     
     # Champs textuels selon ton contrat
     parcours = Column(Text, nullable=False)
