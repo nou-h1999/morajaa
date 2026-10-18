@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "matieres": ["Mathématiques", "Physique-chimie", "Anglais", "Français", "Arabe", "Informatique"],
   "villes": [
@@ -22,4 +23,30 @@
       "quartiers": ["Guéliz", "L'Hivernage"]
     }
   ]
+=======
+{
+  "matieres": ["Mathématiques", "Physique-chimie", "Anglais", "Français", "Arabe", "Informatique"],
+  "villes": [
+    {
+      "nom": "Rabat",
+      "quartiers": ["Agdal", "Hassan", "Hay Riad"]
+    },
+    {
+      "nom": "Casablanca",
+      "quartiers": ["Maârif", "Bourgogne", "Sidi Belyout"]
+    },
+    {
+      "nom": "Salé",
+      "quartiers": ["Tabriquet", "Bettana"]
+    },
+    {
+      "nom": "Kénitra",
+      "quartiers": ["Mimosa", "La Ville Haute"]
+    },
+    {
+      "nom": "Marrakech",
+      "quartiers": ["Guéliz", "L'Hivernage"]
+    }
+  ]
+>>>>>>> a57240b435b6ed666e9adc73b205ababfb4b0825
 }
