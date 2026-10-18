@@ -1,0 +1,106 @@
+{
+  "usage": "developpement_uniquement",
+  "description": "Personnes et parcours entièrement fictifs. Aucun import automatique.",
+  "annonces": [
+    {
+      "utilisateur_dev": {
+        "prenom": "Salma",
+        "email": "salma.test@morajaa.example"
+      },
+      "localisation": {
+        "ville_nom": "Rabat",
+        "quartier_nom": "Agdal"
+      },
+      "annonce": {
+        "parcours": "Étudiante fictive en école d’ingénieur, j’accompagne les élèves de lycée en mathématiques.",
+        "description": "Nous reprenons les notions du cours, travaillons des exercices progressifs et préparons les contrôles avec une méthode adaptée au rythme de l’élève.",
+        "matiere": "mathematiques",
+        "niveau": "lycee",
+        "format": "both",
+        "tarif": "120.50",
+        "disponibilites": "Mercredi après-midi et samedi matin."
+      },
+      "statut_dev": "pending_review"
+    },
+    {
+      "utilisateur_dev": {
+        "prenom": "Yassine",
+        "email": "yassine.test@morajaa.example"
+      },
+      "localisation": {
+        "ville_nom": "Casablanca",
+        "quartier_nom": "Maârif"
+      },
+      "annonce": {
+        "parcours": "Diplômé fictif en sciences physiques, je propose un accompagnement au niveau lycée.",
+        "description": "Je pars d’exemples concrets pour expliquer les phénomènes physiques, puis nous résolvons ensemble des exercices de difficulté croissante.",
+        "matiere": "physique-chimie",
+        "niveau": "lycee",
+        "format": "presentiel",
+        "tarif": "110.00",
+        "disponibilites": "Samedi après-midi."
+      },
+      "statut_dev": "pending_review"
+    },
+    {
+      "utilisateur_dev": {
+        "prenom": "Inès",
+        "email": "ines.test@morajaa.example"
+      },
+      "localisation": {
+        "ville_nom": null,
+        "quartier_nom": null
+      },
+      "annonce": {
+        "parcours": "Étudiante fictive en langues, j’accompagne les collégiens dans leur apprentissage de l’anglais.",
+        "description": "Les séances à distance alternent conversation, compréhension de textes et exercices de grammaire. Nous avançons avec des objectifs simples définis ensemble.",
+        "matiere": "anglais",
+        "niveau": "college",
+        "format": "en-ligne",
+        "tarif": "90.00",
+        "disponibilites": "Mardi et jeudi en début de soirée."
+      },
+      "statut_dev": "pending_review"
+    },
+    {
+      "utilisateur_dev": {
+        "prenom": "Mehdi",
+        "email": "mehdi.test@morajaa.example"
+      },
+      "localisation": {
+        "ville_nom": "Kénitra",
+        "quartier_nom": "Mimosa"
+      },
+      "annonce": {
+        "parcours": "Étudiant fictif en informatique, je propose une initiation à Python pour les étudiants du supérieur.",
+        "description": "Nous construisons de petits programmes pour comprendre les variables, les boucles et les fonctions. Chaque séance comprend une pratique guidée et un exercice autonome.",
+        "matiere": "informatique",
+        "niveau": "superieur",
+        "format": "both",
+        "tarif": "150.00",
+        "disponibilites": "Dimanche matin, sur rendez-vous."
+      },
+      "statut_dev": "pending_review"
+    },
+    {
+      "utilisateur_dev": {
+        "prenom": "Lina",
+        "email": "lina.test@morajaa.example"
+      },
+      "localisation": {
+        "ville_nom": "Marrakech",
+        "quartier_nom": "Guéliz"
+      },
+      "annonce": {
+        "parcours": "Étudiante fictive en lettres, j’aide les élèves de collège à progresser en français.",
+        "description": "Nous travaillons la lecture, la rédaction et les règles de langue à partir des cours de l’élève. Les exercices sont choisis selon ses difficultés et ses objectifs.",
+        "matiere": "francais",
+        "niveau": "college",
+        "format": "presentiel",
+        "tarif": "80.00",
+        "disponibilites": "Mercredi après-midi."
+      },
+      "statut_dev": "pending_review"
+    }
+  ]
+}
