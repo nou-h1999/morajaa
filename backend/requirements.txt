@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pymysql                   # Connecteur recommandé pour MariaDB/MySQL avec SQLAlchemy
+python-dotenv             # Pour charger automatiquement les variables d'environnement
+passlib[bcrypt]           # Pour hacher les mots de passe de tes utilisateurs
+python-jose[cryptography] # Pour générer les tokens de session JWT
+alembic                   # Pour les migrations de la base de données

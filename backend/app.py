@@ -9,7 +9,16 @@ from fastapi import HTTPException
 # On importe nos 3 autres fichiers
 import models, schemas, database
 from database import engine, SessionLocal
+import os
+from dotenv import load_dotenv
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+import security # Ton nouveau fichier
 
+# Charge les variables du fichier .env
+load_dotenv() 
+
+# Exemple d'utilisation pour le CORS
+frontend_urls = os.getenv("FRONTEND_URL", "").split(",")
 # 1. On demande à SQLAlchemy de créer la table dans MariaDB si elle n'existe pas
 models.Base.metadata.create_all(bind=engine)
 
@@ -161,3 +170,37 @@ def creer_annonce(annonce_data: schemas.AnnonceCreate, db: Session = Depends(get
     db.refresh(nouvelle_annonce)
 
     return {"message": "Annonce soumise avec succès", "statut": nouvelle_annonce.statut}
+
+@app.get("/api/v1/referentiels/villes")
+def lister_toutes_les_villes(db: Session = Depends(get_db)):
+    # On prend absolument toutes les villes de la table
+    villes = db.query(models.Ville).all()
+    return [{"id": v.id, "nom": v.nom} for v in villes]
+
+# Ceci indique à FastAPI où les utilisateurs doivent envoyer leurs identifiants pour obtenir le token
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
+
+# --- LA NOUVELLE ROUTE DE CONNEXION ---
+@app.post("/api/v1/auth/login")
+def connexion(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    # 1. On cherche l'utilisateur par son email (FastAPI met l'email dans form_data.username par convention)
+    utilisateur = db.query(models.Utilisateur).filter(models.Utilisateur.email == form_data.username).first()
+    
+    # 2. Si l'utilisateur n'existe pas ou si le mot de passe est faux
+    if not utilisateur or not pwd_context.verify(form_data.password, utilisateur.mot_de_passe_hache):
+        raise HTTPException(
+            status_code=401,
+            detail="Email ou mot de passe incorrect",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    # 3. Les identifiants sont bons, on prépare le token
+    access_token_expires = security.timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    # On met l'ID de l'utilisateur dans le token (sous le nom "sub" pour "subject")
+    access_token = security.creer_access_token(
+        data={"sub": str(utilisateur.id)}, expires_delta=access_token_expires
+    )
+    
+    # 4. On renvoie le token au front-end
+    return {"access_token": access_token, "token_type": "bearer"}

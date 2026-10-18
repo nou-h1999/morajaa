@@ -1,5 +1,6 @@
 #filtrer les données JSON qui entrent et sortent
 from pydantic import BaseModel, EmailStr, model_validator
+from typing import Optional
 
 # 1. Le schéma d'ENTRÉE (Ce que le Front-end nous envoie)
 class UserCreate(BaseModel):
@@ -33,7 +34,7 @@ class AnnonceCreate(BaseModel):
     disponibilites: Optional[str] = None
 
     @model_validator(mode='after')
-    def verifier_coherence_lieu(self):
+    def verifier_coherence_lieu(self) -> 'AnnonceCreate' :
         # Si le cours implique du présentiel, la ville est obligatoire
         if self.format in ["presentiel", "both"] and not self.ville_id:
             raise ValueError("La ville est obligatoire pour les cours en présentiel.")

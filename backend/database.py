@@ -1,6 +1,14 @@
 #pour se connecter à XAMPP ma base de donnée
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+import os
+from dotenv import load_dotenv
+
+# Charge les variables du fichier .env
+load_dotenv() 
+
+# Exemple d'utilisation pour le CORS
+frontend_urls = os.getenv("FRONTEND_URL", "").split(",")
 
 # 1. L'URL de connexion
 # mysql+pymysql : On utilise le pilote pymysql pour parler à MySQL/MariaDB
