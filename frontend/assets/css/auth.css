@@ -1,0 +1,12 @@
+#morajaa-home .mj-password-field{display:flex;align-items:stretch;border:1px solid var(--mj-line);border-radius:6px;background:var(--mj-cream);margin-top:-10px;margin-bottom:16px;overflow:hidden}
+#morajaa-home .mj-password-field input{min-width:0;flex:1;width:100%;font:inherit;font-size:15px;color:var(--mj-plum);background:transparent;border:0;padding:10px 12px;min-height:46px}
+#morajaa-home .mj-password-toggle{flex-shrink:0;border:0;border-left:1px solid var(--mj-line);background:var(--mj-sand);color:var(--mj-plum);padding:10px 14px;min-height:46px;cursor:pointer}
+#morajaa-home .mj-password-field:focus-within{outline:3px solid #977bab;outline-offset:3px}
+#morajaa-home .mj-password-field input:focus-visible{outline:0}
+#morajaa-home .mj-auth-error{padding:12px 14px;border:1px solid #b64646;border-radius:6px;background:#fff3f1;color:#842b2b;font-size:14px}
+#morajaa-home #login-email[aria-invalid=true]{border:2px solid #b64646}
+#morajaa-home .mj-password-field:has(input[aria-invalid=true]){border:2px solid #b64646}
+#morajaa-home .mj-login-submit{width:100%;margin-top:4px}
+#morajaa-home .mj-login-submit:disabled{cursor:not-allowed}
+#morajaa-home #login-status:empty{display:none}
+@media(max-width:600px){#morajaa-home #login-form input{font-size:16px}}
